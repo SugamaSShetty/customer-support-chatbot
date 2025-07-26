@@ -1,161 +1,141 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Support Chatbot</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(to right, #e0f7fa, #e0f2f1);
-            margin: 0;
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 2rem;
-            max-width: 700px;
-            width: 100%;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-        }
-
-        h1 {
-            color: #0d47a1;
-            text-align: center;
-            font-size: 1.75rem;
-        }
-
-        label {
-            font-weight: 600;
-            margin-top: 1rem;
-            display: block;
-        }
-
-        input {
-            padding: 0.75rem;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            margin-top: 0.25rem;
-            width: 100%;
-        }
-
-        button {
-            background-color: #0288d1;
-            color: white;
-            border: none;
-            padding: 0.8rem;
-            margin-top: 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #0277bd;
-        }
-
-        .result {
-            margin-top: 2rem;
-            padding: 1rem;
-            background-color: #f0f4f8;
-            border-left: 5px solid #0288d1;
-            border-radius: 8px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Customer Support Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eef2f5;
+      display: flex;
+      justify-content: center;
+      padding: 50px;
+    }
+    .chat-container {
+      width: 400px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-header {
+      background-color: #007bff;
+      color: white;
+      padding: 16px;
+      text-align: center;
+      border-radius: 8px 8px 0 0;
+      font-size: 18px;
+    }
+    .chat-box {
+      padding: 16px;
+      height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ccc;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      outline: none;
+    }
+    .chat-input button {
+      padding: 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .message {
+      margin-bottom: 10px;
+    }
+    .user {
+      text-align: right;
+      color: #333;
+    }
+    .bot {
+      text-align: left;
+      color: #007bff;
+    }
+  </style>
 </head>
 <body>
-    <div class="card">
-        <h1>📦 Product Stock Checker</h1>
-        <label for="product">Enter Product Name:</label>
-        <input type="text" id="product" placeholder="e.g., Wrangler">
-        <button onclick="getStock()">Get Stock</button>
-        <div class="result" id="output"></div>
+  <div class="chat-container">
+    <div class="chat-header">Customer Support Chatbot</div>
+    <div class="chat-box" id="chat-box"></div>
+    <div class="chat-input">
+      <input type="text" id="user-input" placeholder="Ask about stock, orders, or top products..." />
+      <button onclick="sendMessage()">Send</button>
     </div>
+  </div>
 
-    <div class="card">
-        <h1>📦 Order Status Checker</h1>
-        <label for="orderId">Enter Order ID:</label>
-        <input type="text" id="orderId" placeholder="e.g., 12345">
-        <button onclick="getOrderStatus()">Check Status</button>
-        <div class="result" id="orderOutput"></div>
-    </div>
+  <script>
+    const BASE_URL = "http://127.0.0.1:8000";
 
-    <div class="card">
-        <h1>🤖 Customer Support Chatbot</h1>
-        <label for="chatInput">Ask a question:</label>
-        <input type="text" id="chatInput" placeholder="e.g., What are the top-selling products?">
-        <button onclick="askChatbot()">Ask</button>
-        <div class="result" id="chatOutput"></div>
-    </div>
+    async function sendMessage() {
+      const input = document.getElementById("user-input");
+      const message = input.value.trim();
+      if (!message) return;
 
-    <script>
-        async function getStock() {
-            const productName = document.getElementById('product').value;
-            const output = document.getElementById('output');
-            output.innerHTML = '🔄 Loading...';
+      const chatBox = document.getElementById("chat-box");
+      chatBox.innerHTML += `<div class='message user'>You: ${message}</div>`;
+      input.value = "";
 
-            try {
-                const response = await fetch(`http://127.0.0.1:8000/product-stock/${encodeURIComponent(productName)}`);
-                const data = await response.json();
+      let responseText = "";
 
-                if (data.error) {
-                    output.innerHTML = `<span style='color:red;'>❌ ${data.error}</span>`;
-                } else {
-                    output.innerHTML = `<strong>✅ Result:</strong><br>${JSON.stringify(data, null, 2)}`;
-                }
-            } catch (err) {
-                output.innerHTML = '<span style="color:red;">⚠️ Error fetching data.</span>';
-            }
+      try {
+        if (message.toLowerCase().includes("stock")) {
+          const match = message.match(/stock\s(?:for\s)?(.+?)(\?|$)/i);
+          const product = match?.[1]?.trim() || "";
+          const res = await fetch(`${BASE_URL}/product-stock/${encodeURIComponent(product)}`);
+          const data = await res.json();
+
+          if (data.matched_products) {
+            responseText = `Stock for "${product}":\n` + Object.entries(data.matched_products)
+              .map(([name, count]) => `${name}: ${count}`).join("\n");
+          } else {
+            responseText = data.error || "No stock information available.";
+          }
+
+        } else if (message.toLowerCase().includes("order")) {
+          const orderId = message.match(/\d+/g)?.[0] || "";
+          const res = await fetch(`${BASE_URL}/order-status/${orderId}`);
+          const data = await res.json();
+          if (data.error) {
+            responseText = data.error;
+          } else {
+            responseText =
+              `Order ID: ${data.order_id}\nStatus: ${data.status || 'N/A'}\nShipped: ${data.shipped_at || 'N/A'}\nDelivered: ${data.delivered_at || 'N/A'}\nReturned: ${data.returned_at || 'N/A'}`;
+          }
+
+        } else if (message.toLowerCase().includes("top")) {
+          const res = await fetch(`${BASE_URL}/top-products`);
+          const data = await res.json();
+          if (data.top_5_products && typeof data.top_5_products === "object") {
+            const items = Object.entries(data.top_5_products);
+            responseText = "Top 5 Products:\n" + items.map(
+              ([name, count], i) => `${i + 1}. ${name} (${count})`
+            ).join("\n");
+          } else {
+            responseText = "No top products found.";
+          }
+
+        } else {
+          responseText = "Try asking:\n- stock of Wrangler Jeans\n- order 1234\n- top 5 products";
         }
 
-        async function getOrderStatus() {
-            const orderId = document.getElementById('orderId').value;
-            const output = document.getElementById('orderOutput');
-            output.innerHTML = '🔄 Checking...';
+      } catch (err) {
+        responseText = "Error: Something went wrong while fetching data.";
+      }
 
-            try {
-                const response = await fetch(`http://127.0.0.1:8000/order-status/${encodeURIComponent(orderId)}`);
-                const data = await response.json();
-
-                if (data.error) {
-                    output.innerHTML = `<span style='color:red;'>❌ ${data.error}</span>`;
-                } else {
-                    output.innerHTML = `<strong>📦 Status:</strong><br>${data.message || JSON.stringify(data, null, 2)}`;
-                }
-            } catch (err) {
-                output.innerHTML = '<span style="color:red;">⚠️ Error fetching response.</span>';
-            }
-        }
-
-        async function askChatbot() {
-            const query = document.getElementById('chatInput').value;
-            const output = document.getElementById('chatOutput');
-            output.innerHTML = '🤖 Thinking...';
-
-            try {
-                const response = await fetch(`http://127.0.0.1:8000/chatbot?query=${encodeURIComponent(query)}`);
-                const data = await response.json();
-
-                if (data.error) {
-                    output.innerHTML = `<span style='color:red;'>❌ ${data.error}</span>`;
-                } else {
-                    output.innerHTML = `<strong>💬 Response:</strong><br>${data.message || JSON.stringify(data, null, 2)}`;
-                }
-            } catch (err) {
-                output.innerHTML = '<span style="color:red;">⚠️ Error fetching response.</span>';
-            }
-        }
-    </script>
+      chatBox.innerHTML += `<div class='message bot'>Bot: ${responseText}</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
 </body>
 </html>
